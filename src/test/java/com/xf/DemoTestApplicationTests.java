@@ -102,5 +102,8 @@ class DemoTestApplicationTests {
         System.out.println("2");
     }
 
+    void testGit(){
+
+    }
 }
 
