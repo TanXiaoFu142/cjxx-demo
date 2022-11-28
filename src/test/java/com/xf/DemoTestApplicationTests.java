@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -181,12 +182,51 @@ class DemoTestApplicationTests {
         //颗粒物浓度超过${potency}mg/m³，且次数>${count} 或者颗粒物浓度超过${potency1}mg/m³，且次数>${count1}
 
 
-        String pushContent = "${name}（${idNumber}）行程码${type}";
-        String name = "";
-        String idCard = "";
-        String remark ="";
-        String reason = PlaceholdersUtils.parse0(pushContent, new String[]{name, idCard,remark });
-        System.out.println(reason);
+//        String pushContent = "${name}（${idNumber}）行程码${type}";
+//        String name = "";
+//        String idCard = "";
+//        String remark ="";
+//        String reason = PlaceholdersUtils.parse0(pushContent, new String[]{name, idCard,remark });
+//        System.out.println(reason);
+//        Date date = DateUtils.addHours(new Date(), -8);
+//        String creationDate = new SimpleDateFormat("yyyy年MM月dd日  HH时mm分ss秒").format(date);
+//        System.out.println(creationDate);
+
+    }
+
+    public static void main(String[] args) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar calendar = Calendar.getInstance(/*Locale.CHINA*/);
+        calendar.setTime(new Date());
+        calendar.setFirstDayOfWeek(Calendar.MONDAY);
+        //周一
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date startDate = calendar.getTime();
+        System.out.println("周一："+format.format(startDate));
+        //周末
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        Date endDate = calendar.getTime();
+        System.out.println("周末："+format.format(endDate));
+
+//        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");//设置日期格式
+//        Calendar cld = Calendar.getInstance(Locale.CHINA);
+//        cld.setFirstDayOfWeek(Calendar.MONDAY);//以周一为首日
+//        cld.setTimeInMillis(System.currentTimeMillis());//当前时间
+//
+//        cld.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);//周一
+//        System.out.println(df.format(cld.getTime()));
+//
+//        cld.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);//周日
+//        System.out.println(df.format(cld.getTime()));
+
     }
 }
 
