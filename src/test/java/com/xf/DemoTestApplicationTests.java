@@ -1,10 +1,13 @@
 package com.xf;
 
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +16,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 
 @SpringBootTest
@@ -194,39 +199,73 @@ class DemoTestApplicationTests {
 
     }
 
+    @Test
+    void testDate(){
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.add(Calendar.MONTH,-3);
+//        String format = DateUtil.format(calendar.getTime(), "yyyy-MM");
+//        System.out.println(format);
+//        int i = DateUtil.dayOfMonth(new Date());
+//        System.out.println(i);
+        String [] str = {"1","2"};//["1","2"]
+        System.out.println(str);
+        List<String> strings = Arrays.asList(str);
+        System.out.println(strings);
+        int [] nums = {1,2};
+        System.out.println(nums);
+    }
     public static void main(String[] args) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Calendar calendar = Calendar.getInstance(/*Locale.CHINA*/);
-        calendar.setTime(new Date());
-        calendar.setFirstDayOfWeek(Calendar.MONDAY);
-        //周一
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        Date startDate = calendar.getTime();
-        System.out.println("周一："+format.format(startDate));
-        //周末
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        calendar.set(Calendar.MILLISECOND, 999);
-        Date endDate = calendar.getTime();
-        System.out.println("周末："+format.format(endDate));
-
-//        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");//设置日期格式
-//        Calendar cld = Calendar.getInstance(Locale.CHINA);
-//        cld.setFirstDayOfWeek(Calendar.MONDAY);//以周一为首日
-//        cld.setTimeInMillis(System.currentTimeMillis());//当前时间
 //
-//        cld.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);//周一
-//        System.out.println(df.format(cld.getTime()));
+//        String signMonth = "2022-11";
+//        Date date = DateUtil.parse(signMonth, "yyyy-MM").toJdkDate();
+//        System.out.println(DateUtil.yesterday());
+//        System.out.println(DateUtil.beginOfMonth(date).toString());
 //
-//        cld.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);//周日
-//        System.out.println(df.format(cld.getTime()));
+//
+//        String text = "{\"gangjinlong\":\"20\",\"jiaozhu\":\"25\",\"chengcao\":\"10\",\"qingjiang\":\"15\"}";
+//
+//        JSONObject json = JSON.parseObject(text);
+//        System.out.println("debug....");
+//
+//        //开始时间
+//        Date startTime = DateUtil.beginOfMonth(DateUtil.parse("2022-05", "yyyy-MM")).toJdkDate();
+//        //结束时间
+//        Date endTime = DateUtil.endOfMonth(DateUtil.parse("2022-05", "yyyy-MM")).toJdkDate();
+//
+//        System.out.println(startTime);
+//        System.out.println(endTime);
+//
+//        Integer a = 18;
+//        Integer b = 31;
+//
+//        double signRate = 0L;
+//        signRate = (double)a/b;
+//        System.out.println(signRate);
 
+
+
+//        String dateStr1 = "2017-03-01";
+//        Date date1 = DateUtil.parse(dateStr1);
+//
+//        String dateStr2 = "2017-03-03";
+//        Date date2 = DateUtil.parse(dateStr2);
+//
+//        //相差一个月，31天
+//        long betweenDay = DateUtil.between(date1, date2, DateUnit.DAY);
+//        System.out.println(betweenDay);
+
+//        System.out.println(PinyinUtil.getFirstLetter("项目经理"));
+//        System.out.println(PinyinUtil.getAllFirstLetter("项目经理"));
+
+        Double beforeData = Double.valueOf("");
+//        Double beforeData1111 = Double.valueOf(null);
+        Double beforeData222 = Double.valueOf(0);
+
+        System.out.println(beforeData);
+//        System.out.println(beforeData1111);
+        System.out.println(beforeData222);
+
+        System.out.println("dev");
     }
 }
 
