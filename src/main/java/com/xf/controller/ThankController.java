@@ -1,6 +1,7 @@
-package com.xf.thank;
+package com.xf.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xf.service.KfcService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,6 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ThankController {
 
+    @Autowired
+    private KfcService kfcService;
+
+//    private KfcService kfcService;
+//    @Autowired
+//    public void KfcService(KfcService kfcService){
+//        this.kfcService = null;
+//    }
+
     @RequestMapping("/hello")
     public String hello(){
         return "Hello World";
@@ -24,5 +34,12 @@ public class ThankController {
 
         System.out.println(id);
         return id;
+    }
+
+    @RequestMapping(value = "/getOk",method = RequestMethod.GET)
+    public String getOk(){
+        String ok = kfcService.getOk();
+        kfcService.getOkOk();
+        return ok;
     }
 }

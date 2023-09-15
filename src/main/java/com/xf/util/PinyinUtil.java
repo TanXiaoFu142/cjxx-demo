@@ -1,22 +1,23 @@
-package com.xf;
+package com.xf.util;
 
 import java.io.UnsupportedEncodingException;
 
 /**
- * @author yang
- * @version 1.15, 2017年6月27日 下午1:19:47
+ * @author 谭俊杰
+ * @date 2022/8/30
+ * @time 15:39
  */
 public final class PinyinUtil {
-    private final static int[] li_SecPosValue = {1601, 1637, 1833, 2078, 2274,
+    private final static int[] LI_SEC_POS_CODE = {1601, 1637, 1833, 2078, 2274,
             2302, 2433, 2594, 2787, 3106, 3212, 3472, 3635, 3722, 3730, 3858,
             4027, 4086, 4390, 4558, 4684, 4925, 5249, 5590};
-    private final static String[] lc_FirstLetter = {"a", "b", "c", "d", "e",
+    private final static String[] LC_FIRST_LETTER = {"a", "b", "c", "d", "e",
             "f", "g", "h", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
             "t", "w", "x", "y", "z"};
 
     /**
      * 取得给定汉字串的首字母串,即声母串
-     *
+     * 城建信息 --> cjxx
      * @param str 给定汉字串
      * @return 声母串
      */
@@ -25,12 +26,12 @@ public final class PinyinUtil {
             return "";
         }
 
-        String _str = "";
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < str.length(); i++) {
-            _str = _str + getFirstLetter(str.substring(i, i + 1));
+            sb.append(getFirstLetter(str.substring(i, i + 1)));
         }
 
-        return _str;
+        return sb.toString();
     }
 
     /**
@@ -48,18 +49,18 @@ public final class PinyinUtil {
         // 判断是不是汉字
         if (chinese.length() > 1) {
             // 汉字区码
-            int li_SectorCode = (int) chinese.charAt(0);
+            int liSectorCode = (int) chinese.charAt(0);
             // 汉字位码
-            int li_PositionCode = (int) chinese.charAt(1);
-            li_SectorCode = li_SectorCode - 160;
-            li_PositionCode = li_PositionCode - 160;
+            int liPositionCode = (int) chinese.charAt(1);
+            liSectorCode = liSectorCode - 160;
+            liPositionCode = liPositionCode - 160;
             // 汉字区位码
-            int li_SecPosCode = li_SectorCode * 100 + li_PositionCode;
-            if (li_SecPosCode > 1600 && li_SecPosCode < 5590) {
+            int liSecPosCode = liSectorCode * 100 + liPositionCode;
+            if (liSecPosCode > 1600 && liSecPosCode < 5590) {
                 for (int i = 0; i < 23; i++) {
-                    if (li_SecPosCode >= li_SecPosValue[i]
-                            && li_SecPosCode < li_SecPosValue[i + 1]) {
-                        chinese = lc_FirstLetter[i];
+                    if (liSecPosCode >= LI_SEC_POS_CODE[i]
+                            && liSecPosCode < LI_SEC_POS_CODE[i + 1]) {
+                        chinese = LC_FIRST_LETTER[i];
                         break;
                     }
                 }

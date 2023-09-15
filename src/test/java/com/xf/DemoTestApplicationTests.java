@@ -1,23 +1,30 @@
 package com.xf;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.io.unit.DataUnit;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.time.DateUtils;
+import com.xf.entity.PuPerformanceUnit;
+import com.xf.util.PinyinUtil;
+import io.swagger.annotations.ApiModelProperty;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 
 @SpringBootTest
@@ -65,8 +72,8 @@ class DemoTestApplicationTests {
     void testGetFirstLetter() {
         String chineseCar = "不知名建筑公司-aa";
         String letter = PinyinUtil.getAllFirstLetter(chineseCar);
-        System.out.println("文字内容:"+chineseCar);
-        System.out.println("拼音首字母："+letter);
+        System.out.println("文字内容:" + chineseCar);
+        System.out.println("拼音首字母：" + letter);
     }
 
     @Test
@@ -86,7 +93,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testRemove(){
+    void testRemove() {
 
 //        Iterator<Project> iterator = tendersList.iterator();
 //        while (iterator.hasNext()) {
@@ -128,7 +135,6 @@ class DemoTestApplicationTests {
 //        System.out.println(format1);
 
 
-
         Calendar calen = Calendar.getInstance();
         calen.setTime(parse);
         calen.set(Calendar.HOUR_OF_DAY, 8);
@@ -139,7 +145,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testFormat(){
+    void testFormat() {
         String text = "{\n" +
                 "    \"groupName\": \"上海申铁投资有限公司\",\n" +
                 "    \"tendersId\": 11,\n" +
@@ -151,7 +157,7 @@ class DemoTestApplicationTests {
                 "    \"cameraName\": \"\",\n" +
                 "    \"limitTime\": \"15\",\n" +
                 "    \"projectId\": 1\n" +
-                "}" ;
+                "}";
 
         JSONObject jsonObject = JSON.parseObject(text);
         JSONArray personIdList = jsonObject.getJSONArray("personIdList");
@@ -200,72 +206,81 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testDate(){
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.add(Calendar.MONTH,-3);
-//        String format = DateUtil.format(calendar.getTime(), "yyyy-MM");
-//        System.out.println(format);
-//        int i = DateUtil.dayOfMonth(new Date());
-//        System.out.println(i);
-        String [] str = {"1","2"};//["1","2"]
-        System.out.println(str);
-        List<String> strings = Arrays.asList(str);
-        System.out.println(strings);
-        int [] nums = {1,2};
-        System.out.println(nums);
+    void testDate() {
+        Calendar calendar = Calendar.getInstance();
+        Date date = DateUtil.parse("2023-01-01").toJdkDate();
+        calendar.setTime(date);
+        calendar.set(Calendar.DAY_OF_MONTH,1);
+        System.out.println( DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
+
+
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        System.out.println( DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
     }
-    public static void main(String[] args) {
-//
-//        String signMonth = "2022-11";
-//        Date date = DateUtil.parse(signMonth, "yyyy-MM").toJdkDate();
-//        System.out.println(DateUtil.yesterday());
-//        System.out.println(DateUtil.beginOfMonth(date).toString());
-//
-//
-//        String text = "{\"gangjinlong\":\"20\",\"jiaozhu\":\"25\",\"chengcao\":\"10\",\"qingjiang\":\"15\"}";
-//
-//        JSONObject json = JSON.parseObject(text);
-//        System.out.println("debug....");
-//
-//        //开始时间
-//        Date startTime = DateUtil.beginOfMonth(DateUtil.parse("2022-05", "yyyy-MM")).toJdkDate();
-//        //结束时间
-//        Date endTime = DateUtil.endOfMonth(DateUtil.parse("2022-05", "yyyy-MM")).toJdkDate();
-//
-//        System.out.println(startTime);
-//        System.out.println(endTime);
-//
-//        Integer a = 18;
-//        Integer b = 31;
-//
-//        double signRate = 0L;
-//        signRate = (double)a/b;
-//        System.out.println(signRate);
 
 
+    @Test
+    void testThread() {
+        System.out.println("Hello, World");
 
-//        String dateStr1 = "2017-03-01";
-//        Date date1 = DateUtil.parse(dateStr1);
-//
-//        String dateStr2 = "2017-03-03";
-//        Date date2 = DateUtil.parse(dateStr2);
-//
-//        //相差一个月，31天
-//        long betweenDay = DateUtil.between(date1, date2, DateUnit.DAY);
-//        System.out.println(betweenDay);
+        // newFixedThreadPool(2) 中2 是表示创建一个只有两个线程的线程池
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-//        System.out.println(PinyinUtil.getFirstLetter("项目经理"));
-//        System.out.println(PinyinUtil.getAllFirstLetter("项目经理"));
+        // 执行任务
+        executorService.execute(() -> {
+            System.out.println("任务被执行,线程:" + Thread.currentThread().getName());
+        });
 
-        Double beforeData = Double.valueOf("");
-//        Double beforeData1111 = Double.valueOf(null);
-        Double beforeData222 = Double.valueOf(0);
+    }
 
-        System.out.println(beforeData);
-//        System.out.println(beforeData1111);
-        System.out.println(beforeData222);
+    @Test
+    void testSplit(){
+        List<String> signDetailList = new ArrayList<>(Arrays.asList("1","2","3","4","5","6","7","8","9"));
+        List<String> replaceSignDetailList = new ArrayList<>(Arrays.asList("8","9","10"));
 
-        System.out.println("dev");
+        //并集-->[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] BankReceiptDocId
+        System.out.println(CollectionUtil.union(signDetailList, replaceSignDetailList));
+
+		/*//交集-->[8, 9]
+        System.out.println(CollectionUtil.intersection(signDetailList, replaceSignDetailList));
+
+        //补集-->[1, 2, 3, 4, 5, 6, 7, 10]
+        System.out.println(CollectionUtil.disjunction(signDetailList, replaceSignDetailList));
+
+        //补集-->[1, 2, 3, 4, 5, 6, 7, 10]
+        System.out.println(CollectionUtil.disjunction(replaceSignDetailList,signDetailList));
+
+        //差集-->[1, 2, 3, 4, 5, 6, 7]
+        System.out.println(CollectionUtil.subtract(signDetailList, replaceSignDetailList));*/
+
+        //差集-->[10]  请假的人上的班
+        System.out.println(CollectionUtil.subtract(replaceSignDetailList,signDetailList));
+
+        //利用差集[1, 2, 3, 4, 5, 6, 7, 8, 9]  本人上的班
+        System.out.println(CollectionUtil.subtract(CollectionUtil.union(signDetailList, replaceSignDetailList),CollectionUtil.subtract(replaceSignDetailList,signDetailList)));
+
+		//利用补集
+        System.out.println(CollectionUtil.disjunction(CollectionUtil.union(signDetailList, replaceSignDetailList),CollectionUtil.subtract(replaceSignDetailList,signDetailList)));
+        System.out.println(CollectionUtil.disjunction(CollectionUtil.subtract(replaceSignDetailList,signDetailList),CollectionUtil.union(signDetailList, replaceSignDetailList)));
+
+
+        System.out.println(Arrays.asList(CollectionUtil.union(signDetailList, replaceSignDetailList)).toString().replace("[", "").replace("]", "").replaceAll(" ", ""));
+
+
+    }
+
+
+    @Test
+    void testReflex(){
+        PuPerformanceUnit puPerformanceUnit = new PuPerformanceUnit();
+        Class<?> argObjClass = puPerformanceUnit.getClass();
+        Field[] typeFields = ReflectUtil.getFields(argObjClass);
+        for (Field field : typeFields) {
+            if (field.isAnnotationPresent(ApiModelProperty.class)) {//判断是否存在@ApiModelProperty注解
+                ApiModelProperty amp = field.getAnnotation(ApiModelProperty.class);
+                System.out.println(amp.value());
+            }
+        }
     }
 }
 

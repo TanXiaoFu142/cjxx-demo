@@ -1,4 +1,4 @@
-package com.xf;
+package com.xf.util;
 
 import org.springframework.util.CollectionUtils;
 

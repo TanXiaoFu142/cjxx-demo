@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package com.xf;
+package com.xf.util;
 
 import java.io.IOException;
 import java.security.MessageDigest;

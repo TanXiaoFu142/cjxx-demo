@@ -1,4 +1,4 @@
-package com.xf;
+package com.xf.util;
 
 /**
  * @author 谭俊杰
