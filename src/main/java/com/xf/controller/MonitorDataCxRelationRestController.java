@@ -62,9 +62,10 @@ public class MonitorDataCxRelationRestController {
         }
 
 
-        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(1L+"-"+3L,"1标3工点基坑编码"));
-        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(3L+"-"+6L,"3标6工点基坑编码"));
-        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(3L+"-"+4L,"3标4工点基坑编码"));
+        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(1L+"#"+3L,"1标3工点基坑编码"));
+        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(1L+"#"+3L,"1标3工点基坑编码"));
+        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(3L+"#"+6L,"3标6工点基坑编码"));
+        monitorManageInfoList.add(new MonitorDataCxRelationExcelTemplateDto.MonitorManageInfo(3L+"#"+4L,"3标4工点基坑编码"));
 
 
 
@@ -119,7 +120,7 @@ public class MonitorDataCxRelationRestController {
         //填充下拉框数据
         excelWriter.fill(templateDto.getTendersInfoList(), dataSheet);
         excelWriter.fill(templateDto.getWorkPointInfoList(), dataSheet);
-//        excelWriter.fill(templateDto.getMonitorManageInfoList(),dataSheet);
+        excelWriter.fill(templateDto.getMonitorManageInfoList(),dataSheet);
 
         excelWriter.finish();
         File file = new File(fileName);

@@ -1,0 +1,18 @@
+server:
+  port: 18080
+spring:
+  application:
+    name: cjxx-demo
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    name: defaultDataSource
+    password: '***'
+    url: jdbc:mysql://localhost:3306/blue?serverTimezone=UTC
+    username: '***'
+  mqtt:
+    url: tcp://36.138.252.68:1883
+    automatic-reconnect: true
+    default-topic: test
+    client-id: test-server
+    username: mosquitto
+    password: Suit_m0sqto

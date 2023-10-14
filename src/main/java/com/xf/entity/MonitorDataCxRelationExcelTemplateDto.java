@@ -27,7 +27,7 @@ public class MonitorDataCxRelationExcelTemplateDto implements DtoData {
     @ApiModelProperty(value = "工点数据list", example = "工点数据list")
     public List<WorkPointInfo> workPointInfoList;
 
-    @ApiModelProperty(value = "基坑编码list", example = "工点数据list")
+    @ApiModelProperty(value = "基坑编码list", example = "基坑编码list")
     public List<MonitorManageInfo> monitorManageInfoList;
 
 

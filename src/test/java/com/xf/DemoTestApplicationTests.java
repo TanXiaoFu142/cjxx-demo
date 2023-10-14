@@ -6,15 +6,20 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.unit.DataUnit;
+import cn.hutool.core.util.IdcardUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import com.alibaba.excel.util.MapUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.xf.entity.MasterEntity;
 import com.xf.entity.PuPerformanceUnit;
+import com.xf.service.PersonSync;
 import com.xf.util.PinyinUtil;
 import io.swagger.annotations.ApiModelProperty;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.CollectionUtils;
 
@@ -24,14 +29,18 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 @SpringBootTest
 class DemoTestApplicationTests {
 
+    @Autowired
+    private PersonSync personSync;
     @Test
     void contextLoads() {
+        personSync.handlePerson();
     }
 
     /**
@@ -280,6 +289,44 @@ class DemoTestApplicationTests {
                 ApiModelProperty amp = field.getAnnotation(ApiModelProperty.class);
                 System.out.println(amp.value());
             }
+        }
+    }
+
+
+    @Test
+    void testGroupBy(){
+
+       List<MasterEntity> list = new ArrayList<>();
+        MasterEntity entity1 = new MasterEntity();
+        entity1.setName("张三");
+        entity1.setState(3333);
+        MasterEntity entity2 = new MasterEntity();
+        entity2.setName("张三");
+        entity2.setState(3333);
+        MasterEntity entity3 = new MasterEntity();
+        entity3.setName("张三");
+        entity3.setState(3333);
+
+        MasterEntity entity4 = new MasterEntity();
+        entity3.setName("李四");
+        entity3.setState(44444);
+
+        list.add(entity1);
+        list.add(entity2);
+        list.add(entity3);
+
+        Map<String, List<MasterEntity>> groupMap = list.stream().collect(Collectors.groupingBy(MasterEntity::getName));
+
+        System.out.println(groupMap);
+    }
+
+    @Test
+    void testDouble(){
+        Double actualSalary = 0d;
+        if (0==actualSalary) {
+            System.out.println(true);
+        }else{
+            System.out.println(false);
         }
     }
 }
