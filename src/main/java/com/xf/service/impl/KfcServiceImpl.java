@@ -23,7 +23,7 @@ public class KfcServiceImpl implements KfcService {
     @Override
     public void getOkOk(){
         for (int i = 1000000; i > 0; i--) {
-            System.out.println("OkOk!!!");
+            System.out.println(i+"OkOk!!!");
         }
     }
 }

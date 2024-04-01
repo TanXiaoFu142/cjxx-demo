@@ -2,10 +2,7 @@ package com.xf.controller;
 
 import com.xf.service.KfcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author 肖俊杰
@@ -30,7 +27,7 @@ public class ThankController {
     }
 
     @RequestMapping(value = "/hello23/{:id}",method = RequestMethod.GET)
-    public Integer hello23(@PathVariable(":id") Integer id){
+    public Integer hello23(@PathVariable(":id") @RequestBody Integer id){
 
         System.out.println(id);
         return id;
@@ -42,4 +39,6 @@ public class ThankController {
         kfcService.getOkOk();
         return ok;
     }
+
+
 }
