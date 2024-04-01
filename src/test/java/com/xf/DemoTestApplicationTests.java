@@ -1022,6 +1022,8 @@ class DemoTestApplicationTests {
         DateTime dateTime = DateUtil.parse("2024-03-01", DatePattern.NORM_DATE_PATTERN);
         List<DateTime> dateTimes = DateUtil.rangeToList(DateUtil.beginOfMonth(dateTime), DateUtil.endOfMonth(dateTime), DateField.DAY_OF_MONTH);
         dateTimes.forEach(System.out::println);
+        
+        
     }
 
 }
