@@ -108,28 +108,33 @@ public class SuitController {
     }
 
     @GetMapping("/testThread")
-    public void testThread(){
+    public String testThread(){
         AsyncManager.me().execute(new TimerTask() {
             @Override
             public void run() {
-                long startTime = System.currentTimeMillis();
-                log.info("开始... ");
+                try {
+                    long startTime = System.currentTimeMillis();
+                    log.info("开始... ");
 //                //重新生成日统计记录
-                System.out.println("执行删除.....");
-                DateTime dateTime = DateUtil.parseDate("2024-03" + 01);
-                DateTime beginOfMonth = DateUtil.beginOfMonth(dateTime);
-                DateTime endOfMonth = DateUtil.endOfMonth(dateTime);
-                List<DateTime> dateTimeList = DateUtil.rangeToList(beginOfMonth, endOfMonth, DateField.DAY_OF_YEAR);
-                for (DateTime time : dateTimeList) {
-                    System.out.println("天"+DateUtil.formatDate(time));
+                    log.info("执行删除.....");
+                    log.info("线程名称："+Thread.currentThread().getName());
+                    Thread.sleep(3*1000);
+                    //获取线程名称
+                    DateTime dateTime = DateUtil.parseDate("2024-03" + "-"+01);
+                    DateTime beginOfMonth = DateUtil.beginOfWeek(dateTime);
+                    DateTime endOfMonth = DateUtil.endOfWeek(dateTime);
+                    List<DateTime> dateTimeList = DateUtil.rangeToList(beginOfMonth, endOfMonth, DateField.DAY_OF_YEAR);
+                    for (DateTime time : dateTimeList) {
+                        log.info("天"+DateUtil.formatDate(time));
+                    }
+                    long endTime = System.currentTimeMillis();
+                    log.info("结束... 耗时={}", endTime - startTime);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                for (DateTime time : dateTimeList) {
-                    System.out.println("周"+DateUtil.formatDate(time));
-                }
-                long endTime = System.currentTimeMillis();
-                log.info("结束... 耗时={}", endTime - startTime);
             }
         });
+        return "Ok";
     }
 
 }
