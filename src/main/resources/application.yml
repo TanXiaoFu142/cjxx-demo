@@ -6,9 +6,9 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     name: defaultDataSource
-    password: '***'
-    url: jdbc:mysql://localhost:3306/blue?serverTimezone=UTC
-    username: '***'
+    username: cjxxtest
+    password: Suit@4you
+    url: jdbc:mysql://192.168.99.234:9306/stec-zngw-jx?autoReconnect=true&nullCatalogMeansCurrent=true&useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
   mqtt:
     url: tcp://36.138.252.68:1883
     automatic-reconnect: true
@@ -16,3 +16,23 @@ spring:
     client-id: test-server
     username: mosquitto
     password: Suit_m0sqto
+  redis: 
+    host: 127.0.0.1
+    port: 6379
+
+
+mybatis-plus:
+  # entity包路径,自行修改
+  typeAliasesPackage: com.xf.entity
+  global-config:
+    db-config:
+      db-column-underline: true
+      # 逻辑删及设置默认值（deleted字段是数据库自定义字段）
+      logic-delete-field: deleted
+      logic-not-delete-value: 0
+      logic-delete-value: 1
+  configuration:
+    mapUnderscoreToCamelCase: true
+    # log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl #开启sql日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台 打印sql
+    
