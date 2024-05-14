@@ -5,6 +5,7 @@ import cn.hutool.core.date.*;
 import cn.hutool.core.io.unit.DataUnit;
 import cn.hutool.core.text.StrSplitter;
 import cn.hutool.core.util.*;
+import cn.hutool.http.Header;
 import com.alibaba.excel.util.MapUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -14,13 +15,24 @@ import com.xf.entity.PuPerformanceUnit;
 import com.xf.service.PersonSync;
 import com.xf.util.PinyinUtil;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.models.auth.In;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.reader.StreamReader;
 
 import java.io.IOException;
@@ -40,7 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
+@Slf4j
 @SpringBootTest
 class DemoTestApplicationTests {
 
@@ -1019,12 +1031,116 @@ class DemoTestApplicationTests {
 
     @Test
     void testRangeToList(){
-        DateTime dateTime = DateUtil.parse("2024-03-01", DatePattern.NORM_DATE_PATTERN);
-        List<DateTime> dateTimes = DateUtil.rangeToList(DateUtil.beginOfMonth(dateTime), DateUtil.endOfMonth(dateTime), DateField.DAY_OF_MONTH);
-        dateTimes.forEach(System.out::println);
-        
-        
+
+
+//        ArrayList<String> list = new ArrayList<>(Arrays.asList("2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01", "2024-07-01", "2024-08-01", "2024-09-01", "2024-10-01", "2024-11-01", "2024-12-01"));
+//        for (String str : list) {
+//            DateTime dateTime = DateUtil.parse(str, DatePattern.NORM_DATE_PATTERN);
+//            int monthDay = DateUtil.lengthOfMonth(DateUtil.month(dateTime)+1, DateUtil.isLeapYear(DateUtil.year(dateTime)));
+//            System.out.println(str+":::"+monthDay);
+//        }
+
+
+        int aqyNumber = 10;
+        int lwNumber = 20;
+        double rate = (double) aqyNumber / lwNumber;
+        boolean c = rate < 0.02;
+        System.out.println(c);
     }
 
+
+    public Map<Integer, String> getLongStringMap() {
+        Map<Integer, String> idMap = new HashMap<>();
+        idMap.put(11, "00001.00004");
+        idMap.put(12, "00001.00005");
+        idMap.put(13, "00001.00006");
+        idMap.put(14, "00001.00007");
+        idMap.put(18, "00001.00008");
+
+        Map<Integer, String> sortedIdMap = new TreeMap<>(Comparator.comparing(idMap::get));
+        sortedIdMap.putAll(idMap);
+        sortedIdMap.forEach((k, v) -> System.out.println(k + ":" + v));
+        return sortedIdMap;
+    }
+
+    public List<MasterEntity> getList() {
+        List<MasterEntity> list = new ArrayList<>();
+        list.add(new MasterEntity<>("第三", 14));
+        list.add(new MasterEntity<>("第四", 18));
+        list.add(new MasterEntity<>("第一", 11));
+        list.add(new MasterEntity<>("第二", 13));
+        list.add(new MasterEntity<>("第五", 18));
+        return list;
+
+    }
+
+    @Test
+    public void testComparingTreeId() {
+        Map<Integer, String> idMap = this.getLongStringMap();
+        List<MasterEntity> list = this.getList();
+        //根据list里的对象的state在idMap中对应的value进行升序排序
+
+
+        System.out.println("方式一：");
+        list = list.stream().sorted(Comparator.comparing(obj -> idMap.get(obj.getState()))).collect(Collectors.toList());
+        list.forEach(System.out::println);
+        System.out.println("方式二：");
+        list.sort(Comparator.comparing(obj -> idMap.get(obj.getState())));
+        list.forEach(System.out::println);
+
+    }
+
+    @Test
+    public void testFor() {
+        ArrayList<Long> list = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L, 3L, 2L, 1L, 3L, 4L));
+        ArrayList<Long> listA = new ArrayList<>(Arrays.asList(11L));
+    }
+    
+    
+//    public static void main(String[] args){
+//        MasterEntity<Serializable> a = new MasterEntity<>("张三", 1);
+//        MasterEntity<Serializable> b = new MasterEntity<>("李四", 2);
+//        System.out.println(a+":::"+a.hashCode());
+//        System.out.println(b+":::"+b.hashCode());
+//        //输出a的引用地址
+//        List<MasterEntity<Serializable>> list = new ArrayList<>(Arrays.asList(a, b));
+//        for (MasterEntity<Serializable> master : list) {
+//            System.out.println(master+":::"+master.hashCode());
+//        }
+//        setList(list);
+//        for (MasterEntity<Serializable> master : list) {
+//            System.out.println(master+":::"+master.hashCode());
+//        }
+//        
+//    }
+//
+//    public static void setList(List<MasterEntity<Serializable>> list) {
+//        for (MasterEntity<Serializable> master : list) {
+//            master.setName("6666");
+//        }
+//    }
+
+//    public static void main(String[] args){
+//        Boolean flag = false; // 初始化 flag 为 false
+//        setFlag(flag);       // 将 flag 的值传入 setFlag 方法
+//        System.out.println(flag); // 输出 flag 的值，结果为 false
+//    }
+//
+//    public static void setFlag(Boolean flag) {
+//        flag = true; // 修改参数 flag 的值，但不会影响到 main 方法中的 flag
+//    }
+    
+    public static void main(String[] args) {
+        String str = "{'aa':['str1','str2'],'bb':['str3','str4']}";
+
+        JSONObject jsonObject = JSONObject.parseObject(str);
+        Map<String, List<String>> map = jsonObject.toJavaObject(HashMap.class);
+        System.out.println(map);
+        
+        map.keySet().forEach(System.out::println);
+        map.values().forEach(System.out::println);
+    }
+
+    
 }
 
