@@ -1,6 +1,5 @@
 package com.xf.controller;
 
-import com.baomidou.mybatisplus.extension.api.R;
 import com.xf.server.NoticeWebsocket;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
