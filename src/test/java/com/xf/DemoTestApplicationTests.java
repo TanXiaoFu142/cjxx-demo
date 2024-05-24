@@ -18,6 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.models.auth.In;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -1119,7 +1120,7 @@ class DemoTestApplicationTests {
 //            master.setName("6666");
 //        }
 //    }
-
+//
 //    public static void main(String[] args){
 //        Boolean flag = false; // 初始化 flag 为 false
 //        setFlag(flag);       // 将 flag 的值传入 setFlag 方法
@@ -1131,16 +1132,33 @@ class DemoTestApplicationTests {
 //    }
     
     public static void main(String[] args) {
-        String str = "{'aa':['str1','str2'],'bb':['str3','str4']}";
+//        String str = "  a  b  c  ";
+//        System.out.println(str.trim());
+//国庆10.1 -- 10.7
+        String gregorianYear = "2024";
+        Date dateBegin = null;
+        Date dateEnd = null;
+        dateBegin = DateUtil.parseDate(gregorianYear+"-10-1");
+        dateEnd = DateUtil.parseDate(gregorianYear+"-10-7");
 
-        JSONObject jsonObject = JSONObject.parseObject(str);
-        Map<String, List<String>> map = jsonObject.toJavaObject(HashMap.class);
-        System.out.println(map);
-        
-        map.keySet().forEach(System.out::println);
-        map.values().forEach(System.out::println);
+        System.out.println(DateUtil.formatDate(dateBegin));
+        System.out.println(DateUtil.formatDate(dateEnd));
+
     }
 
+    public static boolean judgmentAttendance(String str, String attendance) {
+        Boolean containsDay = false;
+        // 使用split方法按逗号分割字符串
+        String[] parts = attendance.split(",");
+        // 遍历数组，检查是否包含目标字符串
+        for (String part : parts) {
+            if (part.equals(str)) {
+                containsDay = true;
+                break; // 找到后，可以立即退出循环
+            }
+        }
+        return containsDay;
+    }
     
 }
 
