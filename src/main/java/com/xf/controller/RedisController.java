@@ -39,5 +39,13 @@ public class RedisController {
         redisTemplate.opsForValue().setIfAbsent("lock", "2");
     }
 
-    
+    @GetMapping("/testList")
+    public void testList(){
+        redisTemplate.opsForList().rightPush("personIdCards:1", "101010100101010101");
+        //缓存十分钟
+//        redisTemplate.expire("personIdCards", 1000 * 60 * 10L, TimeUnit.MILLISECONDS);
+        List<String> result = redisTemplate.opsForList().range("personIdCards", 0, -1);
+        System.out.println(result);
+    }
+
 }

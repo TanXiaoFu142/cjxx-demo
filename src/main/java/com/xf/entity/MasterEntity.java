@@ -40,5 +40,14 @@ public class MasterEntity<CODE extends Serializable> {
 	 */
 	@ApiModelProperty(value = "通用字段：数据状态，1用作逻辑删除", example = "0")
 	private Integer state;
+	public void addState(Integer value) {
+		if (value != null) {
+			if (state == null) {
+				state = value;
+			} else {
+				state += value;
+			}
+		}
+	}
 
 }

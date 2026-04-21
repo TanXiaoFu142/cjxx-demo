@@ -1,5 +1,6 @@
 package com.xf.service.impl;
 
+import com.xf.exception.DataServiceException;
 import com.xf.service.KfcService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,11 @@ public class KfcServiceImpl implements KfcService {
 //    @Async
     @Override
     public String getOk() {
+        try {
+            System.out.println(1/0);
+        } catch (Exception e) {
+            throw new DataServiceException("不能除以0");
+        }
         return "ok";
     }
 

@@ -2,63 +2,89 @@ package com.xf;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.*;
-import cn.hutool.core.io.unit.DataUnit;
-import cn.hutool.core.text.StrSplitter;
-import cn.hutool.core.util.*;
-import cn.hutool.http.Header;
-import com.alibaba.excel.util.MapUtils;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.util.ListUtils;
+import com.alibaba.excel.write.handler.SheetWriteHandler;
+import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
+import com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.xf.entity.MasterEntity;
-import com.xf.entity.PuPerformanceUnit;
+import com.google.common.util.concurrent.AtomicDouble;
+import com.googlecode.aviator.AviatorEvaluator;
+import com.googlecode.aviator.Expression;
+import com.stec.utils.*;
+import com.xf.entity.*;
 import com.xf.service.PersonSync;
+import com.xf.util.HttpUtils;
 import com.xf.util.PinyinUtil;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.jsoup.Connection;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.formula.functions.T;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
-import org.yaml.snakeyaml.reader.StreamReader;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
+@EnableScheduling
 @SpringBootTest
 class DemoTestApplicationTests {
 
     @Autowired
     private PersonSync personSync;
+
     @Test
     void contextLoads() {
         personSync.handlePerson();
@@ -240,12 +266,12 @@ class DemoTestApplicationTests {
         Calendar calendar = Calendar.getInstance();
         Date date = DateUtil.parse("2023-01-01").toJdkDate();
         calendar.setTime(date);
-        calendar.set(Calendar.DAY_OF_MONTH,1);
-        System.out.println( DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        System.out.println(DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
 
 
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-        System.out.println( DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
+        System.out.println(DateUtil.format(calendar.getTime(), DatePattern.NORM_DATETIME_PATTERN));
     }
 
 
@@ -264,12 +290,12 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testSplit(){
-        List<String> signDetailList = new ArrayList<>(Arrays.asList("1","2","3","4","5","6","7","8","9"));
-        List<String> replaceSignDetailList = new ArrayList<>(Arrays.asList("8","9","10"));
+    void testSplit() {
+        List<String> signDetailList = new ArrayList<>(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9"));
+        List<String> replaceSignDetailList = new ArrayList<>(Arrays.asList("8", "9", "10"));
 
         System.out.println(CollectionUtil.disjunction(signDetailList, replaceSignDetailList));
-        
+
         //并集-->[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] BankReceiptDocId
         System.out.println(CollectionUtil.union(signDetailList, replaceSignDetailList));
 
@@ -286,14 +312,14 @@ class DemoTestApplicationTests {
         System.out.println(CollectionUtil.subtract(signDetailList, replaceSignDetailList));*/
 
         //差集-->[10]  请假的人上的班
-        System.out.println(CollectionUtil.subtract(replaceSignDetailList,signDetailList));
+        System.out.println(CollectionUtil.subtract(replaceSignDetailList, signDetailList));
 
         //利用差集[1, 2, 3, 4, 5, 6, 7, 8, 9]  本人上的班
-        System.out.println(CollectionUtil.subtract(CollectionUtil.union(signDetailList, replaceSignDetailList),CollectionUtil.subtract(replaceSignDetailList,signDetailList)));
+        System.out.println(CollectionUtil.subtract(CollectionUtil.union(signDetailList, replaceSignDetailList), CollectionUtil.subtract(replaceSignDetailList, signDetailList)));
 
-		//利用补集
-        System.out.println(CollectionUtil.disjunction(CollectionUtil.union(signDetailList, replaceSignDetailList),CollectionUtil.subtract(replaceSignDetailList,signDetailList)));
-        System.out.println(CollectionUtil.disjunction(CollectionUtil.subtract(replaceSignDetailList,signDetailList),CollectionUtil.union(signDetailList, replaceSignDetailList)));
+        //利用补集
+        System.out.println(CollectionUtil.disjunction(CollectionUtil.union(signDetailList, replaceSignDetailList), CollectionUtil.subtract(replaceSignDetailList, signDetailList)));
+        System.out.println(CollectionUtil.disjunction(CollectionUtil.subtract(replaceSignDetailList, signDetailList), CollectionUtil.union(signDetailList, replaceSignDetailList)));
 
 
         System.out.println(Arrays.asList(CollectionUtil.union(signDetailList, replaceSignDetailList)).toString().replace("[", "").replace("]", "").replaceAll(" ", ""));
@@ -325,7 +351,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testReflex(){
+    void testReflex() {
         PuPerformanceUnit puPerformanceUnit = new PuPerformanceUnit();
         Class<?> argObjClass = puPerformanceUnit.getClass();
         Field[] typeFields = ReflectUtil.getFields(argObjClass);
@@ -339,9 +365,9 @@ class DemoTestApplicationTests {
 
 
     @Test
-    void testGroupBy(){
+    void testGroupBy() {
 
-       List<MasterEntity> list = new ArrayList<>();
+        List<MasterEntity> list = new ArrayList<>();
         MasterEntity entity1 = new MasterEntity();
         entity1.setName("张三");
         entity1.setState(3333);
@@ -367,11 +393,11 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testDouble(){
+    void testDouble() {
         Double actualSalary = 0d;
-        if (0==actualSalary) {
+        if (0 == actualSalary) {
             System.out.println(true);
-        }else{
+        } else {
             System.out.println(false);
         }
     }
@@ -689,7 +715,7 @@ class DemoTestApplicationTests {
             System.out.println("Date: " + date + ", Week: " + week);
         }
     }
-    
+
     @Test
     public void date2() {
         // 获取当前日期
@@ -707,17 +733,17 @@ class DemoTestApplicationTests {
         Date endOfMonth = DateUtil.endOfWeek(date);
 
         // 本周开始时间
-        System.out.println("本周开始时间："+DateUtil.formatDate(beginOfMonth));
+        System.out.println("本周开始时间：" + DateUtil.formatDate(beginOfMonth));
         // 本周结束时间
-        System.out.println("本周结束时间："+DateUtil.formatDate(endOfMonth));
-        
+        System.out.println("本周结束时间：" + DateUtil.formatDate(endOfMonth));
+
 
     }
 
     @Test
-    public void date3(){
+    public void date3() {
         Set<String> detailsSet = new HashSet<>();
-        LocalDate localDate = LocalDate.of(Integer.valueOf("2024"),Integer.valueOf("3"), Integer.valueOf("13"));
+        LocalDate localDate = LocalDate.of(Integer.valueOf("2024"), Integer.valueOf("3"), Integer.valueOf("13"));
         detailsSet.add(localDate.toString());
         System.out.println(detailsSet);
     }
@@ -764,7 +790,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testSort(){
+    void testSort() {
 //        //危险>风险预警>风险提示>危险可控>安全
 
 
@@ -809,11 +835,11 @@ class DemoTestApplicationTests {
 
         //排序规则
         HashMap<Integer, String> sortMap = new HashMap<>();
-        sortMap.put(4,"0001.0002");
-        sortMap.put(1,"0002.0001");
-        sortMap.put(5,"0001.0002.0001");
-        sortMap.put(3,"0002.0002");
-        sortMap.put(7,"0003");
+        sortMap.put(4, "0001.0002");
+        sortMap.put(1, "0002.0001");
+        sortMap.put(5, "0001.0002.0001");
+        sortMap.put(3, "0002.0002");
+        sortMap.put(7, "0003");
 //把这些数据添加到HashMap<Integer, String> sortMap = new HashMap<>();中
 
         /**
@@ -951,12 +977,12 @@ class DemoTestApplicationTests {
          */
         //需要排序的数据
         List<MasterEntity> list = new ArrayList<>();
-        list.add(new MasterEntity<>("第三",1));
-        list.add(new MasterEntity<>("第四",3));
+        list.add(new MasterEntity<>("第三", 1));
+        list.add(new MasterEntity<>("第四", 3));
 
-        list.add(new MasterEntity<>("第一",4));
-        list.add(new MasterEntity<>("第二",5));
-        list.add(new MasterEntity<>("第五",7));
+        list.add(new MasterEntity<>("第一", 4));
+        list.add(new MasterEntity<>("第二", 5));
+        list.add(new MasterEntity<>("第五", 7));
 
 
         //list中的数据的state属性和根据sortMap中的key对应，根据sortMap中的value进行排序
@@ -967,7 +993,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testOffsetDay(){
+    void testOffsetDay() {
 
 //        String dateStr = "2023-02-28 00:00:00";
 //        Date date = DateUtil.parse(dateStr);
@@ -978,50 +1004,50 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testSum(){
-        Map<Integer,Integer> map = new HashMap<>();
-        map.put(1,23);
-        map.put(2,16);
-        map.put(3,30);
-        map.put(4,19);
-        map.put(5,25);
-        map.put(6,24);
-        map.put(7,28);
-        map.put(8,26);
-        map.put(9,21);
-        map.put(10,12);
-        map.put(11,24);
-        map.put(12,18);
-        map.put(13,33);
-        map.put(14,19);
-        map.put(15,19);
-        map.put(16,19);
-        map.put(17,19);
-        map.put(18,28);
-        map.put(19,17);
-        map.put(20,21);
-        map.put(21,16);
-        map.put(22,22);
-        map.put(23,16);
-        map.put(24,32);
-        map.put(25,20);
-        map.put(26,32);
-        map.put(27,16);
-        map.put(28,26);
-        map.put(29,18);
-        map.put(30,27);
-        map.put(31,18);
-        map.put(32,31);
-        map.put(33,14);
-        map.put(34,29);
-        map.put(35,22);
+    void testSum() {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1, 23);
+        map.put(2, 16);
+        map.put(3, 30);
+        map.put(4, 19);
+        map.put(5, 25);
+        map.put(6, 24);
+        map.put(7, 28);
+        map.put(8, 26);
+        map.put(9, 21);
+        map.put(10, 12);
+        map.put(11, 24);
+        map.put(12, 18);
+        map.put(13, 33);
+        map.put(14, 19);
+        map.put(15, 19);
+        map.put(16, 19);
+        map.put(17, 19);
+        map.put(18, 28);
+        map.put(19, 17);
+        map.put(20, 21);
+        map.put(21, 16);
+        map.put(22, 22);
+        map.put(23, 16);
+        map.put(24, 32);
+        map.put(25, 20);
+        map.put(26, 32);
+        map.put(27, 16);
+        map.put(28, 26);
+        map.put(29, 18);
+        map.put(30, 27);
+        map.put(31, 18);
+        map.put(32, 31);
+        map.put(33, 14);
+        map.put(34, 29);
+        map.put(35, 22);
 
         for (int i = 1; i <= 35; i++) {
-            System.out.print("i="+i+"：");
-            if (i==32){
-                System.out.println(map.get(i) + map.get(i + 1) + map.get(i + 2) + map.get(i + 3) );
+            System.out.print("i=" + i + "：");
+            if (i == 32) {
+                System.out.println(map.get(i) + map.get(i + 1) + map.get(i + 2) + map.get(i + 3));
                 break;
-            }else{
+            } else {
                 System.out.println(map.get(i) + map.get(i + 1) + map.get(i + 2) + map.get(i + 3) + map.get(i + 4));
             }
 
@@ -1031,7 +1057,7 @@ class DemoTestApplicationTests {
     }
 
     @Test
-    void testRangeToList(){
+    void testRangeToList() {
 
 
 //        ArrayList<String> list = new ArrayList<>(Arrays.asList("2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01", "2024-07-01", "2024-08-01", "2024-09-01", "2024-10-01", "2024-11-01", "2024-12-01"));
@@ -1096,8 +1122,8 @@ class DemoTestApplicationTests {
         ArrayList<Long> list = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L, 3L, 2L, 1L, 3L, 4L));
         ArrayList<Long> listA = new ArrayList<>(Arrays.asList(11L));
     }
-    
-    
+
+
 //    public static void main(String[] args){
 //        MasterEntity<Serializable> a = new MasterEntity<>("张三", 1);
 //        MasterEntity<Serializable> b = new MasterEntity<>("李四", 2);
@@ -1112,7 +1138,7 @@ class DemoTestApplicationTests {
 //        for (MasterEntity<Serializable> master : list) {
 //            System.out.println(master+":::"+master.hashCode());
 //        }
-//        
+//
 //    }
 //
 //    public static void setList(List<MasterEntity<Serializable>> list) {
@@ -1130,35 +1156,492 @@ class DemoTestApplicationTests {
 //    public static void setFlag(Boolean flag) {
 //        flag = true; // 修改参数 flag 的值，但不会影响到 main 方法中的 flag
 //    }
-    
-    public static void main(String[] args) {
-//        String str = "  a  b  c  ";
-//        System.out.println(str.trim());
-//国庆10.1 -- 10.7
-        String gregorianYear = "2024";
-        Date dateBegin = null;
-        Date dateEnd = null;
-        dateBegin = DateUtil.parseDate(gregorianYear+"-10-1");
-        dateEnd = DateUtil.parseDate(gregorianYear+"-10-7");
 
-        System.out.println(DateUtil.formatDate(dateBegin));
-        System.out.println(DateUtil.formatDate(dateEnd));
+    public static final Integer flagKey = 10;
+
+    public static void main(String[] args) {
+//        List<MasterEntity> list = new ArrayList<>(
+//                Arrays.asList(
+//                        new MasterEntity("张三", 3),
+//                        new MasterEntity("李四", 4),
+//                        new MasterEntity("王五", 5),
+//                        new MasterEntity("赵六", 6))
+//        );
+//        ExecutorService executorService = Executors.newFixedThreadPool(list.size());
+//        List<CompletableFuture<Void>> taskList = new ArrayList<>();
+//        for (MasterEntity entity : list) {
+//            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+//                setMasterEntity(entity);
+//            }, executorService);
+//            taskList.add(future);
+//        }
+//        StopWatch stopWatch = new StopWatch();
+//        stopWatch.start();
+//        CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
+//        executorService.shutdown();
+//        list.forEach(System.out::println);
+//        stopWatch.stop();
+//        System.out.println(stopWatch.prettyPrint());
+
+        Map<String, String> columnMap = new HashMap<String, String>() {{
+            put("projectId__name", "所属项目");
+            put("tenderId__name", "标段名称");
+            put("problemField__name", "问题专业");
+            put("problemLevel__name", "问题等级");
+            put("problemDescription", "问题描述");
+            put("applyUser", "提出人");
+            put("applyDate", "提出时间");
+            put("status", "消缺整改状态");
+            put("approveUsers__name", "当前审核人");
+        }};
+        //columnMap转json
+        cn.hutool.json.JSONObject jsonObject = JSONUtil.parseObj(columnMap);
+        System.out.println(jsonObject);
+    }
+
+    public static void setMasterEntity(MasterEntity entity) {
+        try {
+            System.out.println("进来" + entity.getName());
+            Thread.sleep(1000 * 5);
+            entity.setState(entity.getState() + flagKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testDateParse() {
+        String signMonth = "2024-07";
+        DateTime parse = DateUtil.parse(signMonth);
+        System.out.println(DateUtil.formatDateTime(parse));
+    }
+
+    /**
+     * 不创建对象的写
+     */
+    @Test
+    public void noModelWrite() {
+        // 写法1
+        String fileName = "noModelWrite" + System.currentTimeMillis() + ".xlsx";
+        // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+        Map<String, String> columnMap = new HashMap<String, String>() {{
+            put("projectId__name", "所属项目");
+            put("tenderId__name", "标段名称");
+            put("problemField__name", "问题专业");
+            put("problemLevel__name", "问题等级");
+            put("problemDescription", "问题描述");
+            put("applyUser", "提出人");
+            put("applyDate", "提出时间");
+            put("status", "消缺整改状态");
+            put("approveUsers__name", "当前审核人");
+        }};
+
+        //获取动态头部
+        List<List<String>> headList = this.getHeadList(columnMap);
+
+        //获取动态数据源
+        List<List<Object>> dataList = this.getDataList(columnMap);
+
+        EasyExcel.write(fileName).head(headList).registerWriteHandler(new SheetWriteHandler() {
+            @Override
+            public void afterSheetCreate(WriteWorkbookHolder writeWorkbookHolder, WriteSheetHolder writeSheetHolder) {
+                Sheet sheet = writeSheetHolder.getSheet();
+                sheet.createFreezePane(2, 2, 0, 0);
+            }
+        }).sheet("模板").doWrite(dataList);
+    }
+
+
+    private List<List<String>> getHeadList(Map<String, String> columnMap) {
+        List<List<String>> headList = ListUtils.newArrayList();
+        if (MapUtils.isEmpty(columnMap)) {
+            throw new RuntimeException("导出Excel表头未设置！");
+        }
+        for (String columnTitle : columnMap.values()) {
+            List<String> list = ListUtils.newArrayList();
+            list.add(columnTitle);
+            headList.add(list);
+        }
+
+
+        return headList;
+    }
+
+    private List<List<Object>> getDataList(Map<String, String> columnMap) {
+        List<List<Object>> resultList = ListUtils.newArrayList();
+
+        //数据库查询数据
+        List<JSONObject> jsonList = this.getJsonList();
+
+        //获取columnMap中值为true的键
+        Set<String> columnCodeSet = columnMap.keySet();
+        //过滤数据
+        for (JSONObject json : jsonList) {
+            //行数据
+            List<Object> data = ListUtils.newArrayList();
+            for (String column : columnCodeSet) {
+                data.add(json.get(column));
+            }
+            resultList.add(data);
+        }
+        return resultList;
+    }
+
+
+    /**
+     * 模拟数据库查询数据
+     *
+     * @return
+     */
+    private List<JSONObject> getJsonList() {
+        List<JSONObject> resultList = new ArrayList<>();
+        //读取项目resource目录下jsonFile文件夹中的metadata.json文件 java 8
+        File file = new File("src/main/resources/templates/jsonFile/metadata.json");
+        try {
+            String content = FileUtils.readFileToString(file, "UTF-8");
+            JSONArray jsonArray = JSONArray.parseArray(content);
+
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                resultList.add(JSONObject.parseObject(jsonObject.getString("metadata")));
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resultList;
+    }
+
+
+    @Test
+    void JSONTest() {
+        System.out.println("000012.00001".startsWith("000012", "000012.00001".lastIndexOf(".")));
+        System.out.println("张三.李四".startsWith("张四"));
+        System.out.println("张三.李四".startsWith("张三", "张三.李四".lastIndexOf(".")));
+    }
+
+
+    @Test
+    void downImage() {
+        Blockchain testChain = new Blockchain();
+        System.out.println("Mining block...");
+        testChain.addBlock(new Block(1, System.currentTimeMillis(), "This is block 1"));
+        System.out.println("Mining block...");
+        testChain.addBlock(new Block(2, System.currentTimeMillis(), "This is block 2"));
+
+        System.out.println("Is blockchain valid? " + testChain.checkValid());
 
     }
 
-    public static boolean judgmentAttendance(String str, String attendance) {
-        Boolean containsDay = false;
-        // 使用split方法按逗号分割字符串
-        String[] parts = attendance.split(",");
-        // 遍历数组，检查是否包含目标字符串
-        for (String part : parts) {
-            if (part.equals(str)) {
-                containsDay = true;
-                break; // 找到后，可以立即退出循环
+    @Test
+    void getMaxLevel() {
+        String[] levels = {"橙", "黄"};
+        // 使用自定义比较器进行排序
+        Arrays.sort(levels, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                // 定义颜色优先级
+                int level1 = "红".equals(o1) ? 2 : ("橙".equals(o1) ? 1 : 0);
+                int level2 = "红".equals(o2) ? 2 : ("橙".equals(o2) ? 1 : 0);
+
+                // 返回比较结果
+                return Integer.compare(level2, level1); // 反向排序以满足红>橙>黄
+            }
+        });
+    }
+
+
+    @Test
+    void getDGTestData() {
+
+        //20250407134012001
+        //20250407134136002
+        List<Long> psnList = ListUtils.newArrayList(20250407134012001L);
+
+        for (Long psn : psnList) {
+
+//            Date date = DateUtil.parseDateTime("2026-03-16 10:00:00");
+
+            int value6001 = 0;//0-掘进；1-拼装；2-停机
+            int value6002 = 10;
+            int value6003 = 30;
+            int value6004 = 40;
+            int value6005 = 50;
+            int value6006 = 65;
+            double value6057 = 0.1;
+            while (true/*new Date().after(date)*/) {
+                Date date = new Date();
+                JSONObject jsonObject = new JSONObject();
+                JSONArray array = new JSONArray();
+//                date = TimeUtil.addMinutes(date, new Random().nextInt(60*2));
+                JSONObject psnJSON = new JSONObject();
+
+                psnJSON.put("psn", psn);
+                psnJSON.put("time", date.getTime());
+
+                Random random = new Random();
+                int randomInteger = random.nextInt(100);
+                boolean flag = randomInteger == 1;
+                JSONObject dataJSON = new JSONObject();
+                dataJSON.put("6001", value6001);
+                dataJSON.put("6002", flag ? value6002++ : value6002);
+                dataJSON.put("6003", flag ? value6003++ : value6003);
+                dataJSON.put("6004", flag ? value6004++ : value6004);
+                dataJSON.put("6005", flag ? value6005++ : value6005);
+                dataJSON.put("6006", flag ? value6006++ : value6006);
+                dataJSON.put("6057", flag ? value6057++ : value6057);
+                psnJSON.put("data", dataJSON);
+                array.add(psnJSON);
+                jsonObject.put("data", array);
+                String url = "http://192.168.99.24:19075/receive-http-zhgd/stecSend";
+                String response = HttpRequest.post(url)
+                        .header("Content-Type", "application/json")
+                        .body(jsonObject.toJSONString())
+                        .execute()
+                        .body();
+                System.out.println(jsonObject.toJSONString());
+                try {
+                    //休眠2秒
+                    new Thread().sleep(1000 * 30);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        return containsDay;
     }
-    
+
+    @Test
+    void getMonitorTestData() {
+
+        List<Long> psnList = ListUtils.newArrayList(1603075739436001L);
+
+        for (Long psn : psnList) {
+
+            Date date = DateUtil.parseDateTime("2025-08-19 17:00:00");
+            int value3001 = 10;//TSP
+            int value3002 = 20;//噪音
+            int value3003 = 30;//温度
+            int value3004 = 40;//湿度
+            int value3005 = 50;//风速
+            int value3006 = 60;//风向
+            while (new Date().after(date)) {
+                JSONObject jsonObject = new JSONObject();
+                JSONArray array = new JSONArray();
+                date = TimeUtil.addMinutes(date, 5);
+                JSONObject psnJSON = new JSONObject();
+
+                psnJSON.put("psn", psn);
+                psnJSON.put("time", date.getTime());
+
+                Random random = new Random();
+                int randomInteger = random.nextInt(5);
+                boolean flag = randomInteger == 1;
+                JSONObject dataJSON = new JSONObject();
+//                dataJSON.put("3001", String.valueOf(value3001));
+//                dataJSON.put("3002", String.valueOf(flag ? value3002++ : value3002));
+//                dataJSON.put("3003", String.valueOf(flag ? value3003++ : value3003));
+//                dataJSON.put("3004", String.valueOf(flag ? value3004++ : value3004));
+//                dataJSON.put("3005", String.valueOf(flag ? value3005++ : value3005));
+//                dataJSON.put("3006", String.valueOf(flag ? value3006++ : value3006));
+                dataJSON.put("3001", value3001);
+                dataJSON.put("3002", flag ? value3002++ : String.valueOf(value3002));
+                dataJSON.put("3003", flag ? value3003++ : value3003);
+                dataJSON.put("3004", flag ? value3004++ : value3004);
+                dataJSON.put("3005", flag ? value3005++ : value3005);
+                dataJSON.put("3006", flag ? value3006++ : value3006);
+                psnJSON.put("data", dataJSON);
+                array.add(psnJSON);
+                jsonObject.put("data", array);
+                String url = "http://localhost:19075/receive-http/stecSend";
+                log.info("发送消息：{}", jsonObject.toJSONString());
+                String response = HttpRequest.post(url)
+                        .header("Content-Type", "application/json")
+                        .body(jsonObject.toJSONString())
+                        .execute()
+                        .body();
+            }
+        }
+    }
+
+    @Test
+    void testDateBuildUp() {
+        ArrayList<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+        this.testAsync(999);
+        for (Integer i : list) {
+            System.out.println(i / i);
+        }
+    }
+
+    @Async
+    public void testAsync(Integer i) {
+        try {
+            Thread.sleep(5000L);
+            System.out.println(i);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void testIsNull() {
+
+//        DateTime nextDeadline = DateUtil.parse("2024-12-25 00:00:00");
+//        DateTime startDate = DateUtil.parse("2024-12-24 00:00:00");
+//        long betweenDay = DateUtil.betweenDay(DateUtil.endOfDay(nextDeadline), startDate, true)+1;
+//        System.out.println(betweenDay);
+//
+//        String a = DateUtil.formatDateTime(DateUtil.offsetHour(DateUtil.endOfDay(nextDeadline), -24));
+//        System.out.println(a);
+//        String b = DateUtil.formatDateTime(DateUtil.offsetHour(nextDeadline, -8));
+//        System.out.println(b);
+//        String c = DateUtil.formatDateTime(DateUtil.offsetHour(nextDeadline, -7));
+//        System.out.println(c);
+
+        // Step 1: Generate a random number between 0 and 999.
+        Random random = new Random();
+        int randomNumber = random.nextInt(1000); // Generates a number between 0 (inclusive) and 1000 (exclusive)
+        System.out.println("The randomly generated number is: " + randomNumber);
+
+        // Step 2: Use binary search to guess the number.
+        int low = 0;
+        int high = 999;
+        int guesses = 0;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            guesses++;
+
+            if (mid == randomNumber) {
+                System.out.println("Found the number " + randomNumber + " after " + guesses + " guesses.");
+                break;
+            } else if (mid < randomNumber) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        if (low > high) {
+            System.out.println("Number not found within the range. This should not happen in this scenario.");
+        }
+
+
+    }
+
+    @Test
+    void testNonNull() throws IOException {
+        Map<String, Object> env = new HashMap<>();
+        env.put("value", 0.0026666666666667);
+//      String expression = "if (value >= 108) {return 'abc';} else {return 'ddd';}";
+
+        String expression = "if (value <= 0.001) {return '优秀';}if (value <= 0.002) {return '良好';}if (value <= 0.005) {return '一般';} else{return '不合格';}";
+        Expression compiledExp = AviatorEvaluator.compile(expression);
+        Object obj = compiledExp.execute(env);
+        System.out.println(obj);
+    }
+
+    private static final Set<String> TONGJI_PIPES = createPipes();
+
+    private static Set<String> createPipes() {
+        //同济推送数据监测项列表
+        Set<String> set = new HashSet<>(Arrays.asList(
+                "6730", "6731", "6732", "6733", "6734", "6735",
+                "6736", "6737", "6746", "6747", "6748", "6749",
+                "6769", "6770", "6751", "6767"
+        ));
+        return Collections.unmodifiableSet(set);
+    }
+
+    @Test
+    void testValue() {
+
+        Date startDate = DateUtil.parse("2024-01-01 00:00:00");
+        Date endDate = DateUtil.parse("2024-01-01 09:00:00");
+
+        //期望输出：2024-01-01 00:00 至 09:00
+        //期望输出：2024-01-01 00:00 至 09:00
+        String result = formatDateRange(startDate, endDate);
+        log.info("日期范围：{}", result);
+
+    }
+
+    /**
+     * 格式化日期范围
+     * 如果开始和结束日期是同一天，格式为：yyyy-MM-dd HH:mm 至 HH:mm
+     * 如果不是同一天，格式为：yyyy-MM-dd HH:mm 至 yyyy-MM-dd HH:mm
+     */
+    private String formatDateRange(Date startDate, Date endDate) {
+        if (startDate == null || endDate == null) {
+            return "";
+        }
+
+        DateTime startDateTime = DateUtil.date(startDate);
+        DateTime endDateTime = DateUtil.date(endDate);
+
+        // 判断是否为同一天
+        boolean isSameDay = DateUtil.isSameDay(startDate, endDate);
+
+        String startTime = DateUtil.format(startDateTime, "yyyy-MM-dd HH:mm");
+        String endTime = DateUtil.format(endDateTime, "HH:mm");
+
+        if (isSameDay) {
+            return startTime + " 至 " + endTime;
+        } else {
+            String fullEndTime = DateUtil.format(endDateTime, "yyyy-MM-dd HH:mm");
+            return startTime + " 至 " + fullEndTime;
+        }
+    }
+
+    @Test
+    void testExtUser() {
+        String host = "https://kzidcardv1.market.alicloudapi.com";
+        String path = "/api-mall/api/id_card/check";
+        String method = "POST";
+        String appcode = "c226da3be6f248ce8212b1db251cbc95";
+        Map<String, String> headers = new HashMap<String, String>();
+        //最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
+        headers.put("Authorization", "APPCODE " + appcode);
+        //根据API的要求，定义相对应的Content-Type
+        headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        Map<String, String> querys = new HashMap<>();
+        Map<String, String> bodys = new HashMap<>();
+
+        bodys.put("name", "彭飞");
+        bodys.put("idcard", "411123199105213511");
+
+
+        try {
+            /**
+             * 重要提示如下:
+             * HttpUtils请从
+             * https://github.com/aliyun/api-gateway-demo-sign-java/blob/master/src/main/java/com/aliyun/api/gateway/demo/util/HttpUtils.java
+             * 下载
+             *
+             * 相应的依赖请参照
+             * https://github.com/aliyun/api-gateway-demo-sign-java/blob/master/pom.xml
+             */
+            HttpResponse response = HttpUtils.doPost(host, path, method, headers, querys, bodys);
+            if (ObjectUtils.isNotNull(response) && ObjectUtils.isNotNull(response.getEntity())) {
+                String json = EntityUtils.toString(response.getEntity());
+                JSONObject jsonObject = JSONObject.parseObject(json);
+                if (ObjectUtils.isNotNull(jsonObject)) {
+                    Integer code = jsonObject.getInteger("code");
+                    if (!ObjectUtils.notEqual(code, 200)) {
+                        JSONObject data = jsonObject.getJSONObject("data");
+                        Integer result = data.getInteger("result");
+                        if (!ObjectUtils.notEqual(result, 0)) {
+                            System.out.println("IDCardValidator.身份证实名认证通过！");
+                        }
+                    } else {
+                        log.warn("IDCardValidator.身份证实名认证不通过！: {}", json);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 }
 

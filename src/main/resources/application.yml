@@ -1,6 +1,12 @@
 server:
   port: 18080
 spring:
+  servlet:
+    multipart:
+      # 单个文件最大值
+      max-file-size: 10MB
+      # 总上传请求最大值
+      max-request-size: 20MB
   application:
     name: cjxx-demo
   datasource:
@@ -17,9 +23,15 @@ spring:
     username: mosquitto
     password: Suit_m0sqto
   redis: 
-    host: 127.0.0.1
+    host: 192.168.20.131
     port: 6379
 
+#logging:
+#  file:
+#    name: logs/${spring.application.name}.log
+#  level:
+#    com.stec.utils.ImageRotateUtils: error
+#    root: debug
 
 mybatis-plus:
   # entity包路径,自行修改
