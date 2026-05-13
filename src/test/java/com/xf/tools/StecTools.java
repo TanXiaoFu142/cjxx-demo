@@ -1,4 +1,4 @@
-package com.xf;
+package com.xf.tools;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpRequest;
@@ -13,8 +13,15 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 /**
@@ -138,6 +145,74 @@ public class StecTools {
             }
         }
     }
+
+
+    @Test
+    public void testExportDeviceCheckRawReport() throws Exception {
+        String url = "https://jgpt.shsttz.com/promis-web/rest/appletsCheckRaw/deviceCheckRawListReportExport?addWatermark=true";
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.ALL));
+        headers.set("x-auth-token", "bearer d5bb0b07-cba5-46ca-935d-9a72b8f5164b");
+        headers.set("origin", "https://jgpt.shsttz.com");
+        headers.set("referer", "https://jgpt.shsttz.com/");
+        headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36");
+        headers.set("Cookie", "language=false");
+
+        Map<String, Object> body = new HashMap<>();
+        //项目ID
+        body.put("projectId", 17);
+        //姓名
+        body.put("name", "张刘彬");
+        //身份证
+        body.put("idCard", "");
+        //岗位
+        body.put("station", "");
+        //进出位置
+        body.put("areaType", "");
+        body.put("areaId", null);
+        //闸机
+        body.put("deviceId", null);
+        //所属标段
+        body.put("belongTendersId", 38);
+        //进出日期
+        body.put("beginDate", "2026-05-13 00:00:00");
+        body.put("endDate", "2026-05-13 23:59:59");
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                byte[].class
+        );
+
+        String saveDir = "D:\\export";                  // 指定文件夹
+        String fileName = "考勤原始记录报表.xlsx";       // 自定义文件名
+
+        if (!fileName.toLowerCase().endsWith(".xlsx")) {
+            fileName = fileName + ".xlsx";
+        }
+
+        Path dirPath = Paths.get(saveDir);
+        Files.createDirectories(dirPath);
+
+        Path filePath = dirPath.resolve(fileName);
+
+        Files.write(
+                filePath,
+                response.getBody(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
+
+        System.out.println("导出成功：" + filePath.toAbsolutePath());
+    }
+
 
 
 
