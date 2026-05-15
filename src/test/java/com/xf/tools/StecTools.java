@@ -17,11 +17,12 @@ import org.springframework.http.*;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 
 /**
@@ -150,13 +151,22 @@ public class StecTools {
     @Test
     public void testExportDeviceCheckRawReport() throws Exception {
         String url = "https://jgpt.shsttz.com/promis-web/rest/appletsCheckRaw/deviceCheckRawListReportExport?addWatermark=true";
+        YearMonth startMonth = YearMonth.from(LocalDate.parse("2022-05-01"));
+        YearMonth endMonth = YearMonth.now();
+        long intervalMillis = 5000L;
 
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.ALL));
-        headers.set("x-auth-token", "bearer d5bb0b07-cba5-46ca-935d-9a72b8f5164b");
+        headers.setAccept(Arrays.asList(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+                MediaType.APPLICATION_OCTET_STREAM,
+                MediaType.APPLICATION_JSON,
+                MediaType.TEXT_PLAIN,
+                MediaType.ALL
+        ));
+        headers.set("x-auth-token", "bearer 7fdfd3d2-45df-4653-9665-286e094a2b44");
         headers.set("origin", "https://jgpt.shsttz.com");
         headers.set("referer", "https://jgpt.shsttz.com/");
         headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36");
@@ -164,53 +174,70 @@ public class StecTools {
 
         Map<String, Object> body = new HashMap<>();
         //项目ID
-        body.put("projectId", 17);
+        body.put("projectId", 214);
         //姓名
-        body.put("name", "张刘彬");
+//        body.put("name", "张刘彬");
         //身份证
-        body.put("idCard", "");
+//        body.put("idCard", "");
         //岗位
-        body.put("station", "");
+//        body.put("station", "");
         //进出位置
-        body.put("areaType", "");
-        body.put("areaId", null);
+        body.put("areaType", "Device");
+        body.put("areaId", 215);
         //闸机
-        body.put("deviceId", null);
+//        body.put("deviceId", null);
         //所属标段
-        body.put("belongTendersId", 38);
-        //进出日期
-        body.put("beginDate", "2026-05-13 00:00:00");
-        body.put("endDate", "2026-05-13 23:59:59");
+//        body.put("belongTendersId", 38);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<byte[]> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                requestEntity,
-                byte[].class
-        );
-
-        String saveDir = "D:\\export";                  // 指定文件夹
-        String fileName = "考勤原始记录报表.xlsx";       // 自定义文件名
-
-        if (!fileName.toLowerCase().endsWith(".xlsx")) {
-            fileName = fileName + ".xlsx";
-        }
-
+        String saveDir = "D:\\export\\南枫线1标";
         Path dirPath = Paths.get(saveDir);
         Files.createDirectories(dirPath);
 
-        Path filePath = dirPath.resolve(fileName);
+        for (YearMonth currentMonth = startMonth; !currentMonth.isAfter(endMonth); currentMonth = currentMonth.plusMonths(1)) {
+            String beginDate = currentMonth.atDay(1) + " 00:00:00";
+            String endDate = currentMonth.atEndOfMonth() + " 23:59:59";
+            String fileName = currentMonth + "考勤记录.xlsx";
 
-        Files.write(
-                filePath,
-                response.getBody(),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-        );
+            try {
+                body.put("beginDate", beginDate);
+                body.put("endDate", endDate);
+                HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        System.out.println("导出成功：" + filePath.toAbsolutePath());
+                ResponseEntity<byte[]> response = restTemplate.exchange(
+                        url,
+                        HttpMethod.POST,
+                        requestEntity,
+                        byte[].class
+                );
+
+                byte[] responseBody = response.getBody();
+                if (!response.getStatusCode().is2xxSuccessful() || responseBody == null || responseBody.length == 0) {
+                    log.warn("{}导出失败，beginDate={}，endDate={}，status={}，bodySize={}",
+                            currentMonth,
+                            beginDate,
+                            endDate,
+                            response.getStatusCodeValue(),
+                            responseBody == null ? 0 : responseBody.length);
+                    continue;
+                }
+
+                Path filePath = dirPath.resolve(fileName);
+                Files.write(
+                        filePath,
+                        responseBody,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                );
+
+                System.out.println(currentMonth + "导出成功：" + beginDate + " ~ " + endDate + "，文件：" + filePath.toAbsolutePath());
+            } catch (Exception e) {
+                log.error("{}请求导出接口异常，beginDate={}，endDate={}", currentMonth, beginDate, endDate, e);
+            }
+
+            if (currentMonth.isBefore(endMonth) && intervalMillis > 0) {
+                Thread.sleep(intervalMillis);
+            }
+        }
     }
 
 
