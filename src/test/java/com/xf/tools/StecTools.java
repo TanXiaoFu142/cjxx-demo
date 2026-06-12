@@ -153,16 +153,60 @@ public class StecTools {
 
     @Test
     public void testExportDeviceCheckRawReport() throws Exception {
-        String url = "https://jgpt.shsttz.com/promis-web/rest/appletsCheckRaw/deviceCheckRawListReportExport?addWatermark=true";
+        String url = "https://jgpt.shsttz.com/promis-web/rest/appletsCheckRaw/deviceCheckRawListReportExport";
         long intervalMillis = 0L;
-        int projectId = 1;
-        int year = 2000;
-        int month = 1;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = buildExportHeaders();
         Path saveRootDir = Paths.get("D:\\export");
         List<ExportTargetConfig> targetConfigs = Arrays.asList(
-                new ExportTargetConfig(214, "南枫线", "1标", "Device", 215, YearMonth.of(2021, 5))
+//                //机场线
+//                new ExportTargetConfig(1, "机场线", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(1, "机场线", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(1, "机场线", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(1, "机场线", 11, "安全员", YearMonth.of(2000, 1))
+//
+//                //嘉闵线
+//                new ExportTargetConfig(17, "嘉闵线", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(17, "嘉闵线", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(17, "嘉闵线", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(17, "嘉闵线", 11, "安全员", YearMonth.of(2000, 1))
+//
+//
+//                //南汇支线
+//                new ExportTargetConfig(63, "南汇支线", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(63, "南汇支线", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(63, "南汇支线", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(63, "南汇支线", 11, "安全员", YearMonth.of(2000, 1))
+//
+//                //示范区线
+//                new ExportTargetConfig(73, "示范区线", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(73, "示范区线", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(73, "示范区线", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(73, "示范区线", 11, "安全员", YearMonth.of(2000, 1))
+//
+//                //南枫线
+//                new ExportTargetConfig(214, "南枫线", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(214, "南枫线", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(214, "南枫线", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(214, "南枫线", 11, "安全员", YearMonth.of(2000, 1))
+//
+//                //虹桥枢纽
+//                new ExportTargetConfig(30, "虹桥枢纽", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(30, "虹桥枢纽", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(30, "虹桥枢纽", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(30, "虹桥枢纽", 11, "安全员", YearMonth.of(2000, 1))
+//
+//                //三中心
+//                new ExportTargetConfig(72, "三中心", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(72, "三中心", 3, "总监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(72, "三中心", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+//                new ExportTargetConfig(72, "三中心", 11, "安全员", YearMonth.of(2000, 1))
+
+                //马东车辆基地
+                new ExportTargetConfig(74, "马东车辆基地", 8, "施工单位项目负责人", YearMonth.of(2000, 1)),
+                new ExportTargetConfig(74, "马东车辆基地", 3, "总监理工程师", YearMonth.of(2000, 1)),
+                new ExportTargetConfig(74, "马东车辆基地", 6, "安全监理工程师", YearMonth.of(2000, 1)),
+                new ExportTargetConfig(74, "马东车辆基地", 11, "安全员", YearMonth.of(2000, 1))
         );
         List<ExportFailureRecord> failureRecords = new ArrayList<>();
 
@@ -203,14 +247,15 @@ public class StecTools {
         //项目ID
         body.put("projectId", targetConfig.projectId);
         //姓名
-        body.put("name", "张刘彬");
+        body.put("name", "");
         //身份证
         body.put("idCard", "");
         //岗位
-        body.put("station", "");
+        body.put("station", targetConfig.stationCode);
+        body.put("stationName", targetConfig.stationName);
         //进出位置
-        body.put("areaType", targetConfig.areaType);
-        body.put("areaId", targetConfig.areaId);
+        body.put("areaType", "");
+        body.put("areaId", null);
         //闸机
         body.put("deviceId", null);
         //所属标段
@@ -409,7 +454,7 @@ public class StecTools {
             } else {
                 failureRecords.add(new ExportFailureRecord(
                         targetConfig.projectName,
-                        targetConfig.tendersName,
+                        targetConfig.stationName,
                         "小时",
                         beginDate,
                         endDate,
@@ -483,10 +528,11 @@ public class StecTools {
             return ExportResult.noData();
         }
 
-        return ExportResult.failed("响应不是Excel，status=" + response.getStatusCodeValue()
-                + "，contentType=" + response.getHeaders().getContentType()
-                + "，bodySize=" + responseBody.length
-                + "，body=" + bodyPreview);
+//        return ExportResult.failed("响应不是Excel，status=" + response.getStatusCodeValue()
+//                + "，contentType=" + response.getHeaders().getContentType()
+//                + "，bodySize=" + responseBody.length
+//                + "，body=" + bodyPreview);
+        return ExportResult.noData();
     }
 
     private boolean isExcelResponse(HttpHeaders headers, byte[] responseBody) {
@@ -528,11 +574,12 @@ public class StecTools {
     private Path buildMonthFilePath(Path saveRootDir, ExportTargetConfig targetConfig, YearMonth currentMonth) {
         return saveRootDir
                 .resolve(targetConfig.projectName)
-                .resolve(targetConfig.tendersName)
+                .resolve(targetConfig.stationName)
                 .resolve(currentMonth.getYear() + "年")
+                .resolve(currentMonth.getMonthValue() + "月")
                 .resolve(String.format("%s-%s-%d年-%d月份考勤记录.xlsx",
                         targetConfig.projectName,
-                        targetConfig.tendersName,
+                        targetConfig.stationName,
                         currentMonth.getYear(),
                         currentMonth.getMonthValue()));
     }
@@ -540,12 +587,12 @@ public class StecTools {
     private Path buildDayFilePath(Path saveRootDir, ExportTargetConfig targetConfig, LocalDate currentDate) {
         return saveRootDir
                 .resolve(targetConfig.projectName)
-                .resolve(targetConfig.tendersName)
+                .resolve(targetConfig.stationName)
                 .resolve(currentDate.getYear() + "年")
                 .resolve(currentDate.getMonthValue() + "月")
                 .resolve(String.format("%s-%s-%d年-%d月%d号-考勤记录.xlsx",
                         targetConfig.projectName,
-                        targetConfig.tendersName,
+                        targetConfig.stationName,
                         currentDate.getYear(),
                         currentDate.getMonthValue(),
                         currentDate.getDayOfMonth()));
@@ -554,13 +601,12 @@ public class StecTools {
     private Path buildHourFilePath(Path saveRootDir, ExportTargetConfig targetConfig, LocalDate currentDate, int hour) {
         return saveRootDir
                 .resolve(targetConfig.projectName)
-                .resolve(targetConfig.tendersName)
+                .resolve(targetConfig.stationName)
                 .resolve(currentDate.getYear() + "年")
                 .resolve(currentDate.getMonthValue() + "月")
-                .resolve(currentDate.getDayOfMonth() + "号")
                 .resolve(String.format("%s-%s-%d年-%d月%d号%d点-考勤记录.xlsx",
                         targetConfig.projectName,
-                        targetConfig.tendersName,
+                        targetConfig.stationName,
                         currentDate.getYear(),
                         currentDate.getMonthValue(),
                         currentDate.getDayOfMonth(),
@@ -582,22 +628,19 @@ public class StecTools {
     private static class ExportTargetConfig {
         private final Integer projectId;
         private final String projectName;
-        private final String tendersName;
-        private final String areaType;
-        private final Integer areaId;
+        private final Integer stationCode;
+        private final String stationName;
         private final YearMonth startMonth;
 
         private ExportTargetConfig(Integer projectId,
                                    String projectName,
-                                   String tendersName,
-                                   String areaType,
-                                   Integer areaId,
+                                   Integer stationCode,
+                                   String stationName,
                                    YearMonth startMonth) {
             this.projectId = projectId;
             this.projectName = projectName;
-            this.tendersName = tendersName;
-            this.areaType = areaType;
-            this.areaId = areaId;
+            this.stationCode = stationCode;
+            this.stationName = stationName;
             this.startMonth = startMonth;
         }
     }
@@ -626,20 +669,20 @@ public class StecTools {
 
     private static class ExportFailureRecord {
         private final String projectName;
-        private final String segmentName;
+        private final String stationName;
         private final String rangeType;
         private final String beginDate;
         private final String endDate;
         private final String reason;
 
         private ExportFailureRecord(String projectName,
-                                    String segmentName,
+                                    String stationName,
                                     String rangeType,
                                     String beginDate,
                                     String endDate,
                                     String reason) {
             this.projectName = projectName;
-            this.segmentName = segmentName;
+            this.stationName = stationName;
             this.rangeType = rangeType;
             this.beginDate = beginDate;
             this.endDate = endDate;
@@ -649,7 +692,7 @@ public class StecTools {
         @Override
         public String toString() {
             return String.format("[%s-%s][%s] %s ~ %s，原因：%s",
-                    projectName, segmentName, rangeType, beginDate, endDate, reason);
+                    projectName, stationName, rangeType, beginDate, endDate, reason);
         }
     }
 
